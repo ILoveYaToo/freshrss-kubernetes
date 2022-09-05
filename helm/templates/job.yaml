@@ -9,7 +9,7 @@ spec:
   template:
     spec:
       containers:
-        - name: {{ .Chart.Name }}-init
+        - name: {{ .Chart.Name }}-app-init
           securityContext:
             {{- toYaml .Values.freshrss.securityContext | nindent 12 }}
           image: "{{ .Values.freshrss.image.repository }}:{{ .Values.freshrss.image.tag | default .Chart.AppVersion }}"
