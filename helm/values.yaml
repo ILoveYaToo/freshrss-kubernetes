@@ -7,14 +7,6 @@ podAnnotations: {}
 podSecurityContext:
   fsGroup: 1000
 
-resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
-  requests:
-    cpu: 250m
-    memory: 512Mi
-
 autoscaling:
   enabled: false
   minReplicas: 1
@@ -38,6 +30,13 @@ freshrss:
     repository: ghcr.io/iloveyatoo/freshrss
     pullPolicy: Always
     tag: ""
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 512Mi
   storage:
     data:
       storageClassName: default
