@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "freshrss.fullname" . }}-fpm
+  labels:
+    {{- include "freshrss.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9000
+      targetPort: 9000
+      protocol: TCP
+      name: fpm
+  selector:
+    {{- include "freshrss.selectorLabels-fpm" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "freshrss.fullname" . }}-nginx
+  labels:
+    {{- include "freshrss.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: fpm
+  selector:
+    {{- include "freshrss.selectorLabels-nginx" . | nindent 4 }}

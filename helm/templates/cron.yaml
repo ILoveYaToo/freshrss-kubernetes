@@ -1,0 +1,49 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "freshrss.fullname" . }}
+  labels:
+    {{- include "freshrss.labels" . | nindent 4 }}
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: {{ .Chart.Name }}-cron
+              securityContext: {{ toYaml .Values.freshrss.securityContext | nindent 15 }}
+              image: "{{ .Values.freshrss.image.repository }}:{{ .Values.freshrss.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.freshrss.image.pullPolicy }}
+              command: ['/bin/sh', '-c', 'php -f /app/app/actualize_script.php']
+              volumeMounts:
+                - name: {{ include "freshrss.fullname" . }}-data
+                  mountPath: /app/data
+                - name: {{ include "freshrss.fullname" . }}-extensions
+                  mountPath: /app/extensions
+                - name: {{ include "freshrss.fullname" . }}-php-timezone
+                  mountPath: /usr/local/etc/php/conf.d/timezone.ini
+                  subPath: timezone.ini
+                  readOnly: true
+                - name: {{ include "freshrss.fullname" . }}-tmp
+                  mountPath: /tmp
+          volumes:
+            - name: {{ include "freshrss.fullname" . }}-data
+              persistentVolumeClaim:
+                claimName: {{ include "freshrss.fullname" . }}-data
+            - name: {{ include "freshrss.fullname" . }}-extensions
+              persistentVolumeClaim:
+                claimName: {{ include "freshrss.fullname" . }}-extensions
+            - name: {{ include "freshrss.fullname" . }}-php-timezone
+              configMap:
+                name: {{ include "freshrss.fullname" . }}-php-timezone
+                defaultMode: 0644
+                items:
+                  - key: timezone.ini
+                    path: timezone.ini
+            - name: {{ include "freshrss.fullname" . }}-tmp
+              emptyDir:
+                medium: Memory
+                sizeLimit: 128Mi
+          restartPolicy: OnFailure

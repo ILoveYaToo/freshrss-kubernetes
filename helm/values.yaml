@@ -1,0 +1,90 @@
+replicaCount: 1
+
+imagePullSecrets: []
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+freshrss:
+  user:
+    uid: 1000
+    gid: 1000
+  timezone: Europe/London
+  cron: "1,31"
+  image:
+    repository: ghcr.io/iloveyatoo/freshrss
+    pullPolicy: Always
+    tag: ""
+  storage:
+    data:
+      storageClassName: default
+      size: 20G
+    extensions:
+      storageClassName: default
+      size: 5G
+  setting:
+    database:
+      type: sqlite
+    admin:
+      user: admin
+      password: adminpass
+    language: en
+    title: FreshRSS
+    base_url: https://freshrss.org
+    allow_robots: false
+    allow_anonymous: false
+    allow_anonymous_refresh: false
+    api_enabled: false
+  securityContext:
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsUser: 1000
+    runAsGroup: 1000
+nginx:
+  storage:
+    nginx:
+      storageClassName: default
+      size: 1G
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  image:
+    repository: nginxinc/nginx-unprivileged
+    pullPolicy: Always
+    tag: ""
+  securityContext:
+    capabilities:
+      drop:
+      - ALL
+    runAsUser: 101
+    runAsGroup: 101
+    readOnlyRootFilesystem: true
