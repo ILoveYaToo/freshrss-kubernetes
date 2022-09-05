@@ -31,9 +31,9 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: {{ include "freshrss.fullname" . }}-data
+            - name: {{ include "freshrss.fullname" . }}-app-data
               mountPath: /app/data
-            - name: {{ include "freshrss.fullname" . }}-extensions
+            - name: {{ include "freshrss.fullname" . }}-app-extensions
               mountPath: /app/extensions
             - name: {{ include "freshrss.fullname" . }}-admin-user-creation
               mountPath: /usr/local/bin/freshrss-admin-user-creation.sh
@@ -46,12 +46,12 @@ spec:
             - name: {{ include "freshrss.fullname" . }}-tmp
               mountPath: /tmp
       volumes:
-      - name: {{ include "freshrss.fullname" . }}-data
+      - name: {{ include "freshrss.fullname" . }}-app-data
         persistentVolumeClaim:
-          claimName: {{ include "freshrss.fullname" . }}-data
-      - name: {{ include "freshrss.fullname" . }}-extensions
+          claimName: {{ include "freshrss.fullname" . }}-app-data
+      - name: {{ include "freshrss.fullname" . }}-app-extensions
         persistentVolumeClaim:
-          claimName: {{ include "freshrss.fullname" . }}-extensions
+          claimName: {{ include "freshrss.fullname" . }}-app-extensions
       - name: {{ include "freshrss.fullname" . }}-admin-user-creation
         configMap:
           name: {{ include "freshrss.fullname" . }}-admin-user-creation
