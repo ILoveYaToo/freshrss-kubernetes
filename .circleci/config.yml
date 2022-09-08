@@ -1,6 +1,6 @@
 --- 
 jobs: 
-  docker-lint: 
+  test: 
     machine: 
       docker_layer_caching: true
       image: "ubuntu-2004:latest"
@@ -9,49 +9,72 @@ jobs:
       - 
         checkout: 
           path: ~/app
-      - 
-        run: 
-          command: |
-            sudo wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.10.0/hadolint-Linux-x86_64
-            sudo chmod +x /usr/local/bin/hadolint
-          name: "Install Hadolint"
       -
         run:
           command: |
-            /usr/local/bin/hadolint docker/Dockerfile
-          name: Hadolint Dockerfile
-    working_directory: ~/app
-  docker-build-test: 
-    machine: 
-      docker_layer_caching: false
-      image: "ubuntu-2004:latest"
-      resource_class: large
-    steps: 
-      - 
-        checkout: 
-          path: ~/app
+            pip3 install yq
+            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
+            tar xvf helm-v3.9.0-linux-amd64.tar.gz
+            sudo mv linux-amd64/helm /usr/local/bin
+            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
+            sudo wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.10.0/hadolint-Linux-x86_64
+            sudo chmod +x /usr/local/bin/hadolint
+          name: Install Dependencies
+      -
+        run:
+          command: |
+            cd ~/app/docker
+            /usr/local/bin/hadolint Dockerfile
+          name: Lint Dockerfile
+      -
+        run:
+          command: |
+            cd ~/app/helm
+            helm lint
+          name: Lint Helm Chart
       - 
         run:
           command: |
-            cd docker
-            export LATEST_VERSION=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/FreshRSS/FreshRSS/releases | jq -r '.[] | select(.prerelease==false) | .tag_name' | sort -V | tail -n1 | cut -d "v" -f 2)
-            export GITHUB_API_TOKEN=$(curl -u ILoveYaToo:$GITHUB_TOKEN https://ghcr.io/token\?scope\="repository:<repository/path>:pull" | jq -r .token)
+            cd ~/app/docker
             docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-$REVISION --build-arg APP_VER=$LATEST_VERSION .
           name: Test Dockerfile
     working_directory: ~/app
-  docker-build-stable: 
+  deploy: 
     machine: 
-      docker_layer_caching: false
-      image: "ubuntu-2004:2022.04.1"
+      docker_layer_caching: true
+      image: "ubuntu-2004:latest"
       resource_class: medium
     steps: 
       - 
         checkout: 
           path: ~/app
+      -
+        run:
+          command: |
+            pip3 install yq
+            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
+            tar xvf helm-v3.9.0-linux-amd64.tar.gz
+            sudo mv linux-amd64/helm /usr/local/bin
+            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
+            sudo wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.10.0/hadolint-Linux-x86_64
+            sudo chmod +x /usr/local/bin/hadolint
+          name: Install Dependencies
+      -
+        run:
+          command: |
+            cd ~/app/docker
+            /usr/local/bin/hadolint Dockerfile
+          name: Lint Dockerfile
+      -
+        run:
+          command: |
+            cd ~/app/helm
+            helm lint
+          name: Lint Helm Chart
       - 
         run: 
           command: "echo \"$GITHUB_TOKEN\" | docker login --username \"ILoveYaToo\" --password-stdin ghcr.io\n"
-          name: "Github Docker Repo"
+          name: "Login to Docker Repo"
       - 
         run: 
           command: |
@@ -65,49 +88,7 @@ jobs:
               docker push ghcr.io/iloveyatoo/freshrss:latest
               docker push ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-$REVISION
             fi
-          name: "Build FreshRSS Image"
-    working_directory: ~/app
-  helm-lint: 
-    machine: 
-      docker_layer_caching: true
-      image: "ubuntu-2004:2022.04.1"
-      resource_class: medium
-    steps: 
-      - 
-        checkout: 
-          path: ~/app
-      -
-        run:
-          command: |
-            pip3 install yq
-            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
-            tar xvf helm-v3.9.0-linux-amd64.tar.gz
-            sudo mv linux-amd64/helm /usr/local/bin
-            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
-          name: Install Dependencies
-      -
-        run:
-          command: |
-            helm lint
-          name: Run Linter
-  helm-build: 
-    machine: 
-      docker_layer_caching: true
-      image: "ubuntu-2004:2022.04.1"
-      resource_class: medium
-    steps: 
-      - 
-        checkout: 
-          path: ~/app
-      -
-        run:
-          command: |
-            pip3 install yq
-            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
-            tar xvf helm-v3.9.0-linux-amd64.tar.gz
-            sudo mv linux-amd64/helm /usr/local/bin
-            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
-          name: Install Dependencies
+          name: "Build Docker Image"
       - 
         run: 
           command: |
@@ -133,27 +114,14 @@ version: 2.1
 workflows: 
   default: 
     jobs: 
-      - docker-lint:
+      - test:
           filters:
             branches:
               ignore: main
-          context:
-            - github
-      - docker-build-test:
-          filters:
-            branches:
-              ignore: main
-          context:
-            - github
-      - docker-build-stable:
-          filters:
-            branches:
-              only: main
-          context: 
-            - github
-      - helm-build:
+      - deploy:
           filters:
             branches:
               only: main
           context: 
             - bunny-storage-helm
+            - github
