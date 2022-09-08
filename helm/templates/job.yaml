@@ -11,11 +11,62 @@ spec:
       containers:
         - name: {{ .Chart.Name }}-app-init
           securityContext:
-            {{- toYaml .Values.freshrss.securityContext | nindent 12 }}
+            {{- toYaml .Values.freshrss.securityContext | nindent 13 }}
           image: "{{ .Values.freshrss.image.repository }}:{{ .Values.freshrss.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.freshrss.image.pullPolicy }}
           command: ['/bin/sh', '/usr/local/bin/freshrss-admin-user-creation.sh']
           env:
+          {{- if eq .Values.freshrss.setting.database.type "postgres" }}
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "freshrss.fullname" . }}"
+                  key: dbHost
+                  optional: false
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "freshrss.fullname" . }}"
+                  key: dbUser
+                  optional: false
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "freshrss.fullname" . }}"
+                  key: dbPassword
+                  optional: false
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "freshrss.fullname" . }}"
+                  key: dbName
+                  optional: false
+          {{ else if eq .Values.freshrss.setting.database.type "mysql" }}
+            - name: MYSQL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "freshrss.fullname" . }}"
+                  key: dbHost
+                  optional: false
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "freshrss.fullname" . }}"
+                  key: dbUser
+                  optional: false
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "freshrss.fullname" . }}"
+                  key: dbPassword
+                  optional: false
+            - name: MYSQL_DB
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "freshrss.fullname" . }}"
+                  key: dbName
+                  optional: false
+          {{ end }}
             - name: FRESHRSS_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -29,7 +80,7 @@ spec:
                   key: userPassword
                   optional: false
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.freshrss.resources.init | nindent 12 }}
           volumeMounts:
             - name: {{ include "freshrss.fullname" . }}-app-data
               mountPath: /app/data
@@ -69,7 +120,7 @@ spec:
       - name: {{ include "freshrss.fullname" . }}-tmp
         emptyDir:
           medium: Memory
-          sizeLimit: 128Mi
+          sizeLimit: {{ .Values.freshrss.tmpStorage }}
       restartPolicy: Never
   backoffLimit: 4
 ---
@@ -90,7 +141,7 @@ spec:
           imagePullPolicy: {{ .Values.freshrss.image.pullPolicy }}
           command: ['/bin/sh', '-c', 'rm -rf /target/{*,.*} && cp -R /app/p/. /target/p/']
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.nginx.resources.init | nindent 12 }}
           volumeMounts:
             - name: {{ include "freshrss.fullname" . }}-nginx-data
               mountPath: /target

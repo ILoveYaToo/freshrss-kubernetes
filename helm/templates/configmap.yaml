@@ -32,17 +32,17 @@ data:
         --title {{ .Values.freshrss.setting.title }} \
         --base_url {{ .Values.freshrss.setting.base_url }} \
         --db-type pgsql \
-        --db-host {{ .Values.freshrss.setting.database.host }} \
-        --db-user {{ .Values.freshrss.setting.database.user }} \
-        --db-password {{ .Values.freshrss.setting.database.password }} \
-        --db-base {{ .Values.freshrss.setting.database.dbname }} \
+        --db-host $POSTGRES_HOST \
+        --db-user $POSTGRES_USER \
+        --db-password $POSTGRES_PASSWORD \
+        --db-base $POSTGRES_DB \
         --db-prefix {{ .Values.freshrss.setting.database.dbprefix }} \ 
         --disable_update \
         {{ if .Values.freshrss.setting.allow_robots }}--allow_robots \{{ end }}
         {{ if .Values.freshrss.setting.allow_anonymous }}--allow_anonymous \{{ end }}
         {{ if .Values.freshrss.setting.allow_anonymous_refresh }}--allow_anonymous_refresh \{{ end }}
         {{ if .Values.freshrss.setting.api_enabled }}--api_enabled \{{ end }}
-      {{ else if eq.Values.freshrss.setting.database.type "mysql" }}
+      {{ else if eq .Values.freshrss.setting.database.type "mysql" }}
       ./cli/do-install.php \
         --default_user "$FRESHRSS_USERNAME" \
         --auth_type form \
@@ -51,10 +51,10 @@ data:
         --title {{ .Values.freshrss.setting.title }} \
         --base_url {{ .Values.freshrss.setting.base_url }} \
         --db-type mysql \
-        --db-host {{ .Values.freshrss.setting.database.host }} \
-        --db-user {{ .Values.freshrss.setting.database.user }} \
-        --db-password {{ .Values.freshrss.setting.database.password }} \
-        --db-base {{ .Values.freshrss.setting.database.dbname }} \
+        --db-host $MYSQL_HOST \
+        --db-user $MYSQL_USER \
+        --db-password $MYSQL_PASSWORD \
+        --db-base $MYSQL_DB \
         --db-prefix {{ .Values.freshrss.setting.database.dbprefix }} \ 
         --disable_update \
         {{ if .Values.freshrss.setting.allow_robots }}--allow_robots \{{ end }}

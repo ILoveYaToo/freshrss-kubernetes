@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "freshrss.labels" . | nindent 4 }}
 spec:
-  schedule: "*/5 * * * *"
+  schedule: "{{ .Values.cron.schedule }}"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 1
@@ -48,5 +48,5 @@ spec:
             - name: {{ include "freshrss.fullname" . }}-tmp
               emptyDir:
                 medium: Memory
-                sizeLimit: 128Mi
+                sizeLimit: {{ .Values.freshrss.tmpStorage }}
           restartPolicy: OnFailure

@@ -30,13 +30,6 @@ freshrss:
     repository: ghcr.io/iloveyatoo/freshrss
     pullPolicy: Always
     tag: ""
-  resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 250m
-      memory: 512Mi
   storage:
     data:
       storageClassName: default
@@ -64,18 +57,27 @@ freshrss:
     readOnlyRootFilesystem: true
     runAsUser: 1000
     runAsGroup: 1000
+  tmpStorage: 128G
+  resources:
+    init:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+    app:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 512Mi
 nginx:
   storage:
     nginx:
       storageClassName: default
       size: 1G
-  resources:
-    limits:
-      cpu: 100m
-      memory: 128Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
   image:
     repository: nginxinc/nginx-unprivileged
     pullPolicy: Always
@@ -87,3 +89,21 @@ nginx:
     runAsUser: 101
     runAsGroup: 101
     readOnlyRootFilesystem: true
+  tmpStorage: 128G
+  resources:
+    init:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+    app:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+cron:
+  schedule: "*/5 * * * *"
