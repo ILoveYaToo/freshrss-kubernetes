@@ -111,6 +111,7 @@ jobs:
       - 
         run: 
           command: |
+            cd helm
             export CHART_NAME=$(yq -r .name Chart.yaml)
             export CHART_VERSION=$(yq -r .version Chart.yaml)
             export CHART_TGZ="$CHART_NAME-$CHART_VERSION.tgz"
@@ -120,7 +121,7 @@ jobs:
             else
               mkdir ~/target
               cd ~/target
-              helm package ~/app
+              helm package ~/app/helm/
               curl --request GET --url https://storage.bunnycdn.com/iloveyatoo-helm/index.yaml --header 'Accept: */*' --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY" -o index.yaml
               helm repo index ~/target --merge index.yaml
               curl --request PUT --url https://storage.bunnycdn.com/iloveyatoo-helm/index.yaml --data-binary @index.yaml --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY"
