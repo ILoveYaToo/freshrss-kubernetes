@@ -85,10 +85,17 @@ jobs:
             if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-$REVISION) == "404" ]
             then
               docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-$REVISION --build-arg APP_VER=$LATEST_VERSION .
+            fi
+          name: "Build Docker Image"
+      -
+        run:
+          command: |
+            if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-$REVISION) == "404" ]
+            then
               docker push ghcr.io/iloveyatoo/freshrss:latest
               docker push ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-$REVISION
             fi
-          name: "Build Docker Image"
+          name: "Upload Docker Image"
       - 
         run: 
           command: |
@@ -96,19 +103,24 @@ jobs:
             export CHART_NAME=$(yq -r .name Chart.yaml)
             export CHART_VERSION=$(yq -r .version Chart.yaml)
             export CHART_TGZ="$CHART_NAME-$CHART_VERSION.tgz"
+            mkdir ~/helm_package
+            cd ~/helm_package
+            helm package ~/app/helm/
+          name: "Build Helm Chart"
+      - 
+        run:
+          command: |
             if [[ $(curl -s --request GET --url https://storage.bunnycdn.com/iloveyatoo-helm/ --header 'Accept: */*' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY" | jq -r '.[] | select(.ObjectName==env.CHART_TGZ)') ]]
             then
               echo "Package already exists"
             else
-              mkdir ~/target
-              cd ~/target
-              helm package ~/app/helm/
+              cd ~/helm_package
               curl --request GET --url https://storage.bunnycdn.com/iloveyatoo-helm/index.yaml --header 'Accept: */*' --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY" -o index.yaml
-              helm repo index ~/target --merge index.yaml
+              helm repo index ~/helm_package --merge index.yaml
               curl --request PUT --url https://storage.bunnycdn.com/iloveyatoo-helm/index.yaml --data-binary @index.yaml --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY"
               curl --request PUT --url https://storage.bunnycdn.com/iloveyatoo-helm/$CHART_TGZ --data-binary @$CHART_TGZ --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY"
             fi
-          name: "Build Helm Chart"
+          name: "Upload Helm Chart"
     working_directory: ~/app
 version: 2.1
 workflows: 
