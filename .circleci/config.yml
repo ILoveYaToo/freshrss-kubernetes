@@ -63,7 +63,7 @@ jobs:
         run:
           command: |
             cd ~/app/docker
-            /usr/local/bin/hadolint Dockerfile
+            /usr/local/bin/hadolint --ignore DL3018 --ignore SC2086 Dockerfile
           name: Lint Dockerfile
       -
         run:
