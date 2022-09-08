@@ -67,6 +67,67 @@ jobs:
             fi
           name: "Build FreshRSS Image"
     working_directory: ~/app
+  helm-lint: 
+    machine: 
+      docker_layer_caching: true
+      image: "ubuntu-2004:2022.04.1"
+      resource_class: medium
+    steps: 
+      - 
+        checkout: 
+          path: ~/app
+      -
+        run:
+          command: |
+            pip3 install yq
+            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
+            tar xvf helm-v3.9.0-linux-amd64.tar.gz
+            sudo mv linux-amd64/helm /usr/local/bin
+            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
+          name: Install Dependencies
+      -
+        run:
+          command: |
+            helm lint
+          name: Run Linter
+  helm-build: 
+    machine: 
+      docker_layer_caching: true
+      image: "ubuntu-2004:2022.04.1"
+      resource_class: medium
+    steps: 
+      - 
+        checkout: 
+          path: ~/app
+      -
+        run:
+          command: |
+            pip3 install yq
+            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
+            tar xvf helm-v3.9.0-linux-amd64.tar.gz
+            sudo mv linux-amd64/helm /usr/local/bin
+            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
+          name: Install Dependencies
+      - 
+        run: 
+          command: |
+            export CHART_NAME=$(yq -r .name Chart.yaml)
+            export CHART_VERSION=$(yq -r .version Chart.yaml)
+            export CHART_TGZ="$CHART_NAME-$CHART_VERSION.tgz"
+            if [[ $(curl -s --request GET --url https://storage.bunnycdn.com/iloveyatoo-helm/ --header 'Accept: */*' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY" | jq -r '.[] | select(.ObjectName==env.CHART_TGZ)') ]]
+            then
+              echo "Package already exists"
+            else
+              mkdir ~/target
+              cd ~/target
+              helm package ~/app
+              curl --request GET --url https://storage.bunnycdn.com/iloveyatoo-helm/index.yaml --header 'Accept: */*' --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY" -o index.yaml
+              helm repo index ~/target --merge index.yaml
+              curl --request PUT --url https://storage.bunnycdn.com/iloveyatoo-helm/index.yaml --data-binary @index.yaml --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY"
+              curl --request PUT --url https://storage.bunnycdn.com/iloveyatoo-helm/$CHART_TGZ --data-binary @$CHART_TGZ --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY"
+            fi
+          name: "Build Helm Chart"
+    working_directory: ~/app
 version: 2.1
 workflows: 
   default: 
@@ -89,3 +150,9 @@ workflows:
               only: main
           context: 
             - github
+      - helm-build:
+          filters:
+            branches:
+              only: master
+          context: 
+            - bunny-storage-helm
