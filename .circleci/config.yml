@@ -153,6 +153,6 @@ workflows:
       - helm-build:
           filters:
             branches:
-              only: master
+              only: main
           context: 
             - bunny-storage-helm
