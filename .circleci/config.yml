@@ -79,21 +79,22 @@ jobs:
         run: 
           command: |
             cd docker
-            export REVISION=2
             export LATEST_VERSION=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/FreshRSS/FreshRSS/releases | jq -r '.[] | select(.prerelease==false) | .tag_name' | sort -V | tail -n1 | cut -d "v" -f 2)
             export GITHUB_API_TOKEN=$(curl -u ILoveYaToo:$GITHUB_TOKEN https://ghcr.io/token\?scope\="repository:<repository/path>:pull" | jq -r .token)
             if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-$REVISION) == "404" ]
             then
-              docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-$REVISION --build-arg APP_VER=$LATEST_VERSION .
+              docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.workingdir >> --build-arg APP_VER=$LATEST_VERSION .
             fi
           name: "Build Docker Image"
       -
         run:
           command: |
+            export LATEST_VERSION=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/FreshRSS/FreshRSS/releases | jq -r '.[] | select(.prerelease==false) | .tag_name' | sort -V | tail -n1 | cut -d "v" -f 2)
+            export GITHUB_API_TOKEN=$(curl -u ILoveYaToo:$GITHUB_TOKEN https://ghcr.io/token\?scope\="repository:<repository/path>:pull" | jq -r .token)
             if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-$REVISION) == "404" ]
             then
               docker push ghcr.io/iloveyatoo/freshrss:latest
-              docker push ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-$REVISION
+              docker push ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >>
             fi
           name: "Upload Docker Image"
       - 
@@ -123,6 +124,10 @@ jobs:
           name: "Upload Helm Chart"
     working_directory: ~/app
 version: 2.1
+parameters:
+  revision:
+    type: integer
+    default: 2
 workflows: 
   default: 
     jobs: 
