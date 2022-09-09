@@ -36,7 +36,7 @@ data:
         --db-user $POSTGRES_USER \
         --db-password $POSTGRES_PASSWORD \
         --db-base $POSTGRES_DB \
-        --db-prefix {{ .Values.freshrss.setting.database.dbprefix }} \ 
+        --db-prefix {{ .Values.freshrss.setting.database.dbprefix | default "app_" }} \ 
         --disable_update \
         {{ if .Values.freshrss.setting.allow_robots }}--allow_robots \{{ end }}
         {{ if .Values.freshrss.setting.allow_anonymous }}--allow_anonymous \{{ end }}
