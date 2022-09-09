@@ -24,7 +24,7 @@ data:
         {{ if .Values.freshrss.setting.allow_anonymous_refresh }}--allow_anonymous_refresh \{{ end }}
         {{ if .Values.freshrss.setting.api_enabled }}--api_enabled \{{ end }}
       {{ else if eq .Values.freshrss.setting.database.type "postgres" }}
-      ./cli/do-install.php 
+      ./cli/do-install.php \
         --default_user "$FRESHRSS_USERNAME" \
         --auth_type form \
         --environment production \
