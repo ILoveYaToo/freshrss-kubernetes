@@ -2,6 +2,7 @@ FROM --platform=$BUILDPLATFORM php:8.1.8-fpm-alpine as build
 
 ARG APP_VER
 ARG HOST_ARCH
+ARG TARGETARCH
 
 RUN apk add --no-cache bash
 SHELL ["/bin/bash", "-c"]
