@@ -156,6 +156,7 @@ jobs:
           command: |
             cd ~/helm_package
             source ~/helm_package/env
+            echo $CHART_TGZ
             if [[ $(curl -s --request GET --url https://storage.bunnycdn.com/iloveyatoo-helm/ --header 'Accept: */*' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY" | jq -r '.[] | select(.ObjectName==env.CHART_TGZ)') ]]
             then
               echo "Helm package exists, upload is not required"
