@@ -152,7 +152,6 @@ jobs:
             then
               echo "Helm package exists, upload is not required"
             else
-              cd ~/tmp/workspace/helm_package
               curl --request GET --url https://storage.bunnycdn.com/iloveyatoo-helm/index.yaml --header 'Accept: */*' --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY" -o index.yaml
               helm repo index ~/tmp/workspace/helm_package --merge index.yaml
               curl --request PUT --url https://storage.bunnycdn.com/iloveyatoo-helm/index.yaml --data-binary @index.yaml --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY"
