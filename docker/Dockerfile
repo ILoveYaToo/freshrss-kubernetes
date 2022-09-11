@@ -17,7 +17,7 @@ RUN apk add --no-cache wget unzip \
     && mkdir -p /app/data /nginx \
     && chown -R app:app /app /nginx
 
-RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev\
+RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev \
     && if [[ "$BUILDPLATFORM" = "arm64" ]]; then \
             docker-php-ext-configure opcache --build x86_64-pc-linux-gnu --host aarch64-linux-gnu \
             docker-php-ext-configure gmp --build x86_64-pc-linux-gnu --host aarch64-linux-gnu \
@@ -25,7 +25,7 @@ RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev\
             docker-php-ext-configure zip --build x86_64-pc-linux-gnu --host aarch64-linux-gnu \
             docker-php-ext-configure pdo --build x86_64-pc-linux-gnu --host aarch64-linux-gnu \
             docker-php-ext-configure pdo_mysql --build x86_64-pc-linux-gnu --host aarch64-linux-gnu \
-            docker-php-ext-configure pdo_pgsql --build x86_64-pc-linux-gnu --host aarch64-linux-gnu \
+            docker-php-ext-configure pdo_pgsql --build x86_64-pc-linux-gnu --host aarch64-linux-gnu; \
         fi \
     && ARCH=$BUILDARCH docker-php-ext-install -j"$(nproc)" opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
 	&& docker-php-ext-enable opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
