@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM php:8.1.8-fpm-alpine as build
+FROM --platform=$BUILDPLATFORM php:8.1.8-fpm-alpine as build-extensions
 
 ARG APP_VER
 ARG HOST_ARCH
@@ -20,9 +20,8 @@ RUN apk add --no-cache wget unzip \
     && chown -R app:app /app /nginx
 
 RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev \
-    && echo $TARGETARCH \
     && if [[ "$TARGETARCH" = "arm64" ]]; then \
-            docker-php-ext-configure opcache --build x86_64-pc-linux-musl --host aarch64-linux-musl --help\
+            docker-php-ext-configure opcache --build x86_64-pc-linux-musl --host aarch64-linux-musl --disable-opcache-jit \
             docker-php-ext-configure gmp --build x86_64-pc-linux-musl --host aarch64-linux-musl \
             docker-php-ext-configure intl --build x86_64-pc-linux-musl --host aarch64-linux-musl \
             docker-php-ext-configure zip --build x86_64-pc-linux-musl --host aarch64-linux-musl \
@@ -30,15 +29,9 @@ RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev \
             docker-php-ext-configure pdo_mysql --build x86_64-pc-linux-musl --host aarch64-linux-musl \
             docker-php-ext-configure pdo_pgsql --build x86_64-pc-linux-musl --host aarch64-linux-musl; \
         fi \
-    && ARCH=$BUILDARCH docker-php-ext-install -j"$(nproc)" opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
+    && docker-php-ext-install -j"$(nproc)" opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
 	&& docker-php-ext-enable opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
     && apk add --no-cache gmp icu libzip libpq
-
-RUN apk add --update --no-cache --virtual .build-dependencies $PHPIZE_DEPS \ 
-    && pecl install apcu \
-    && docker-php-ext-enable apcu \
-    && pecl clear-cache \
-    && apk del .build-dependencies
 
 WORKDIR /app
 
@@ -46,3 +39,11 @@ USER app
 
 EXPOSE 9000
 CMD ["php-fpm"]
+
+FROM php:8.1.8-fpm-alpine as build-pecl
+
+RUN apk add --update --no-cache --virtual .build-dependencies $PHPIZE_DEPS \ 
+    && pecl install apcu \
+    && docker-php-ext-enable apcu \
+    && pecl clear-cache \
+    && apk del .build-dependencies
