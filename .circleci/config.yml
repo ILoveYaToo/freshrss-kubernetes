@@ -39,7 +39,7 @@ jobs:
             docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-$REVISION --build-arg APP_VER=$LATEST_VERSION .
           name: Test Dockerfile
     working_directory: ~/app
-  deploy: 
+  build-docker: 
     machine: 
       docker_layer_caching: true
       image: "ubuntu-2004:current"
@@ -84,8 +84,16 @@ jobs:
             if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-<< pipeline.parameters.revision >>) == "404" ]
             then
               docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> --build-arg APP_VER=$LATEST_VERSION .
+              docker export ghcr.io/iloveyatoo/freshrss:latest > image.tar
+              echo "export DOCKER_BUILD_REQUIRED=True" > env
+            else
+              echo "export DOCKER_BUILD_REQUIRED=False" > env
             fi
           name: "Build Docker Image"
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is
+          # taken to be the root directory of the workspace.
+          root: docker
       -
         run:
           command: |
@@ -135,10 +143,23 @@ workflows:
           filters:
             branches:
               ignore: main
-      - deploy:
+      - build-docker:
           filters:
             branches:
               only: main
           context: 
-            - bunny-storage-helm
             - github
+      - build-helm:
+          filters:
+            branches:
+              only: main
+      - upload:
+          requires:
+            - build-docker
+            - build-helm
+          context: 
+            - github
+            - bunny-storage-helm
+          filters:
+            branches:
+              only: main
