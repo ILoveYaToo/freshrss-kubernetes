@@ -62,7 +62,7 @@ jobs:
             export LATEST_VERSION=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/FreshRSS/FreshRSS/releases | jq -r '.[] | select(.prerelease==false) | .tag_name' | sort -V | tail -n1 | cut -d "v" -f 2)
             docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> --build-arg APP_VER=$LATEST_VERSION .
             docker save -o image.tar ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >>
-            echo "LATEST_VERSION=$LATEST_VERSION" > ~/app/docker/env
+            echo "LATEST_VERSION=$LATEST_VERSION" > ~/env
           name: "Build Docker Image"
       - save_cache:
           key: docker
@@ -123,7 +123,6 @@ jobs:
         run:
           command: |
             cd ~/app/docker
-            ls -la /app/docker
             source ~/app/docker/env
             docker load -i image.tar
             export GITHUB_API_TOKEN=$(curl -u ILoveYaToo:$GITHUB_TOKEN https://ghcr.io/token\?scope\="repository:<repository/path>:pull" | jq -r .token)
@@ -148,7 +147,7 @@ jobs:
         run:
           command: |
             cd ~/helm_package
-            source ~/app/docker/env
+            source ~/helm_package/env
             if [[ $(curl -s --request GET --url https://storage.bunnycdn.com/iloveyatoo-helm/ --header 'Accept: */*' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY" | jq -r '.[] | select(.ObjectName==env.CHART_TGZ)') ]]
             then
               echo "Helm package exists, upload is not required"
