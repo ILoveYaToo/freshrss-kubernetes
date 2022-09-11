@@ -47,11 +47,15 @@ jobs:
           name: Lint Helm Chart
     working_directory: ~/app
   build-docker: 
-    machine: 
-      docker_layer_caching: true
-      image: "ubuntu-2004:current"
-      resource_class: large
+    #machine: 
+    #  docker_layer_caching: true
+    #  image: "ubuntu-2004:current"
+    #  resource_class: large
+    docker:
+      - image: cimg/base:stable
     steps: 
+      - setup_remote_docker:
+          version: 20.10.14
       - 
         checkout: 
           path: ~/app
