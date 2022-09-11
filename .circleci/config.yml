@@ -47,15 +47,11 @@ jobs:
           name: Lint Helm Chart
     working_directory: ~/app
   build-docker: 
-    #machine: 
-    #  docker_layer_caching: true
-    #  image: "ubuntu-2004:current"
-    #  resource_class: large
-    docker:
-      - image: cimg/base:stable
+    machine: 
+      docker_layer_caching: true
+      image: "ubuntu-2004:current"
+      resource_class: large
     steps: 
-      - setup_remote_docker:
-          version: 20.10.14
       - 
         checkout: 
           path: ~/app
@@ -71,8 +67,7 @@ jobs:
             export BUILDKIT_PROGRESS=plain
             cd docker
             export LATEST_VERSION=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/FreshRSS/FreshRSS/releases | jq -r '.[] | select(.prerelease==false) | .tag_name' | sort -V | tail -n1 | cut -d "v" -f 2)
-            docker context create builder
-            docker buildx create builder
+            docker buildx create --use
             docker buildx build --ulimit nofile=1024000 -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> --build-arg APP_VER=$LATEST_VERSION --platform linux/arm64 .
             docker save -o image.tar ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >>
             echo "LATEST_VERSION=$LATEST_VERSION" > env

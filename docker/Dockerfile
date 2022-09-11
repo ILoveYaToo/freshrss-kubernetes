@@ -1,4 +1,4 @@
-FROM php:8.1.8-fpm-alpine
+FROM --platform=$BUILDPLATFORM php:8.1.8-fpm-alpine as build
 
 ARG APP_VER
 
@@ -17,7 +17,7 @@ RUN apk add --no-cache wget unzip \
     && chown -R app:app /app /nginx
 
 RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev\
-    && docker-php-ext-install -j"$(nproc)" opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
+    && ARCH=$BUILDARCH docker-php-ext-install -j"$(nproc)" opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
 	&& docker-php-ext-enable opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
     && apk add --no-cache gmp icu libzip libpq
 
