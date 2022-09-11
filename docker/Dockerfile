@@ -14,12 +14,14 @@ RUN apk add --no-cache wget unzip \
     && mkdir -p /app/data /nginx \
     && chown -R app:app /app /nginx
 
-RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev\
+RUN ulimit -n 1024000 \
+    && apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev\
     && docker-php-ext-install -j"$(nproc)" opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
 	&& docker-php-ext-enable opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
     && apk add --no-cache gmp icu libzip libpq
 
-RUN apk add --update --no-cache --virtual .build-dependencies $PHPIZE_DEPS \ 
+RUN ulimit -n 1024000 \
+    && apk add --update --no-cache --virtual .build-dependencies $PHPIZE_DEPS \ 
     && pecl install apcu \
     && docker-php-ext-enable apcu \
     && pecl clear-cache \
