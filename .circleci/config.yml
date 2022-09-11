@@ -34,10 +34,10 @@ jobs:
       -
         run:
           command: |
-            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
-            tar xvf helm-v3.9.0-linux-amd64.tar.gz
+            wget https://get.helm.sh/helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz
+            tar xvf helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz
             sudo mv linux-amd64/helm /usr/local/bin
-            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
+            rm -r helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz linux-amd64
           name: Install Dependencies
       -
         run:
@@ -82,10 +82,10 @@ jobs:
         run:
           command: |
             pip3 install yq
-            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
-            tar xvf helm-v3.9.0-linux-amd64.tar.gz
+            wget https://get.helm.sh/helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz
+            tar xvf helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz
             sudo mv linux-amd64/helm /usr/local/bin
-            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
+            rm -r helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz linux-amd64
           name: Install Dependencies
       - 
         run: 
@@ -143,6 +143,14 @@ jobs:
     steps: 
       - restore_cache:
           key: helm
+      -
+        run:
+          command: |
+            wget https://get.helm.sh/helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz
+            tar xvf helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz
+            sudo mv linux-amd64/helm /usr/local/bin
+            rm -r helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz linux-amd64
+          name: Install Dependencies
       - 
         run:
           command: |
@@ -164,6 +172,9 @@ parameters:
   revision:
     type: integer
     default: 3
+  helm_version:
+    type: string
+    default: "3.9.0"
 workflows: 
   default: 
     jobs: 
