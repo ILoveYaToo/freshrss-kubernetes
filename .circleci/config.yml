@@ -1,6 +1,6 @@
 --- 
 jobs: 
-  test: 
+  lint-docker: 
     machine: 
       docker_layer_caching: true
       image: "ubuntu-2004:current"
@@ -12,11 +12,6 @@ jobs:
       -
         run:
           command: |
-            pip3 install yq
-            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
-            tar xvf helm-v3.9.0-linux-amd64.tar.gz
-            sudo mv linux-amd64/helm /usr/local/bin
-            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
             sudo wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.10.0/hadolint-Linux-x86_64
             sudo chmod +x /usr/local/bin/hadolint
           name: Install Dependencies
@@ -26,18 +21,30 @@ jobs:
             cd ~/app/docker
             /usr/local/bin/hadolint --ignore DL3018 --ignore SC2086 Dockerfile
           name: Lint Dockerfile
+    working_directory: ~/app
+  lint-helm: 
+    machine: 
+      docker_layer_caching: true
+      image: "ubuntu-2004:current"
+      resource_class: medium
+    steps: 
+      - 
+        checkout: 
+          path: ~/app
+      -
+        run:
+          command: |
+            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
+            tar xvf helm-v3.9.0-linux-amd64.tar.gz
+            sudo mv linux-amd64/helm /usr/local/bin
+            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
+          name: Install Dependencies
       -
         run:
           command: |
             cd ~/app/helm
             helm lint
           name: Lint Helm Chart
-      - 
-        run:
-          command: |
-            cd ~/app/docker
-            docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-$REVISION --build-arg APP_VER=$LATEST_VERSION .
-          name: Test Dockerfile
     working_directory: ~/app
   build-docker: 
     machine: 
@@ -48,29 +55,6 @@ jobs:
       - 
         checkout: 
           path: ~/app
-      -
-        run:
-          command: |
-            pip3 install yq
-            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
-            tar xvf helm-v3.9.0-linux-amd64.tar.gz
-            sudo mv linux-amd64/helm /usr/local/bin
-            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
-            sudo wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.10.0/hadolint-Linux-x86_64
-            sudo chmod +x /usr/local/bin/hadolint
-          name: Install Dependencies
-      -
-        run:
-          command: |
-            cd ~/app/docker
-            /usr/local/bin/hadolint --ignore DL3018 --ignore SC2086 Dockerfile
-          name: Lint Dockerfile
-      -
-        run:
-          command: |
-            cd ~/app/helm
-            helm lint
-          name: Lint Helm Chart
       - 
         run: 
           command: "echo \"$GITHUB_TOKEN\" | docker login --username \"ILoveYaToo\" --password-stdin ghcr.io\n"
@@ -80,31 +64,33 @@ jobs:
           command: |
             cd docker
             export LATEST_VERSION=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/FreshRSS/FreshRSS/releases | jq -r '.[] | select(.prerelease==false) | .tag_name' | sort -V | tail -n1 | cut -d "v" -f 2)
-            export GITHUB_API_TOKEN=$(curl -u ILoveYaToo:$GITHUB_TOKEN https://ghcr.io/token\?scope\="repository:<repository/path>:pull" | jq -r .token)
-            if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-<< pipeline.parameters.revision >>) == "404" ]
-            then
-              docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> --build-arg APP_VER=$LATEST_VERSION .
-              docker export ghcr.io/iloveyatoo/freshrss:latest > image.tar
-              echo "export DOCKER_BUILD_REQUIRED=True" > env
-            else
-              echo "export DOCKER_BUILD_REQUIRED=False" > env
-            fi
+            docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> --build-arg APP_VER=$LATEST_VERSION .
+            docker export ghcr.io/iloveyatoo/freshrss:latest > image.tar
+            echo "LATEST_VERSION=$LATEST_VERSION" > env
           name: "Build Docker Image"
       - persist_to_workspace:
-          # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is
-          # taken to be the root directory of the workspace.
           root: docker
+          paths: 
+            - '*'
+    working_directory: ~/app
+  build-helm: 
+    machine: 
+      docker_layer_caching: true
+      image: "ubuntu-2004:current"
+      resource_class: medium
+    steps:
+      - 
+        checkout: 
+          path: ~/app
       -
         run:
           command: |
-            export LATEST_VERSION=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/FreshRSS/FreshRSS/releases | jq -r '.[] | select(.prerelease==false) | .tag_name' | sort -V | tail -n1 | cut -d "v" -f 2)
-            export GITHUB_API_TOKEN=$(curl -u ILoveYaToo:$GITHUB_TOKEN https://ghcr.io/token\?scope\="repository:<repository/path>:pull" | jq -r .token)
-            if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-$REVISION) == "404" ]
-            then
-              docker push ghcr.io/iloveyatoo/freshrss:latest
-              docker push ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >>
-            fi
-          name: "Upload Docker Image"
+            pip3 install yq
+            wget https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
+            tar xvf helm-v3.9.0-linux-amd64.tar.gz
+            sudo mv linux-amd64/helm /usr/local/bin
+            rm -r helm-v3.9.0-linux-amd64.tar.gz linux-amd64
+          name: Install Dependencies
       - 
         run: 
           command: |
@@ -115,17 +101,58 @@ jobs:
             mkdir ~/helm_package
             cd ~/helm_package
             helm package ~/app/helm/
+            echo "CHART_NAME=$CHART_NAME" > env
+            echo "CHART_VERSION=$CHART_VERSION" >> env
+            echo "CHART_TGZ=$CHART_TGZ" >> env
           name: "Build Helm Chart"
+      - persist_to_workspace:
+          root: helm_package
+          paths: 
+            - '*'
+    working_directory: ~/app
+  deploy-docker: 
+    machine: 
+      docker_layer_caching: true
+      image: "ubuntu-2004:current"
+      resource_class: medium
+    steps: 
+      - attach_workspace:
+          at: /tmp/workspace
+      -
+        run:
+          command: |
+            cd /tmp/workspace/docker
+            source env
+            export GITHUB_API_TOKEN=$(curl -u ILoveYaToo:$GITHUB_TOKEN https://ghcr.io/token\?scope\="repository:<repository/path>:pull" | jq -r .token)
+            if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-<< pipeline.parameters.revision >>) == "404" ]
+            then
+              docker push ghcr.io/iloveyatoo/freshrss:latest
+              docker push ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >>
+            else
+              echo "Docker Image exists, upload is not required"
+            fi
+          name: "Upload Docker Image"
+    working_directory: ~/app
+  deploy-helm: 
+    machine: 
+      docker_layer_caching: true
+      image: "ubuntu-2004:current"
+      resource_class: medium
+    steps: 
+      - attach_workspace:
+          at: /tmp/workspace
       - 
         run:
           command: |
+            cd ~/tmp/workspace/helm_package
+            source env
             if [[ $(curl -s --request GET --url https://storage.bunnycdn.com/iloveyatoo-helm/ --header 'Accept: */*' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY" | jq -r '.[] | select(.ObjectName==env.CHART_TGZ)') ]]
             then
-              echo "Package already exists"
+              echo "Helm package exists, upload is not required"
             else
-              cd ~/helm_package
+              cd ~/tmp/workspace/helm_package
               curl --request GET --url https://storage.bunnycdn.com/iloveyatoo-helm/index.yaml --header 'Accept: */*' --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY" -o index.yaml
-              helm repo index ~/helm_package --merge index.yaml
+              helm repo index ~/tmp/workspace/helm_package --merge index.yaml
               curl --request PUT --url https://storage.bunnycdn.com/iloveyatoo-helm/index.yaml --data-binary @index.yaml --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY"
               curl --request PUT --url https://storage.bunnycdn.com/iloveyatoo-helm/$CHART_TGZ --data-binary @$CHART_TGZ --header 'Content-Type: application/octet-stream' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY"
             fi
@@ -139,26 +166,34 @@ parameters:
 workflows: 
   default: 
     jobs: 
-      - test:
-          filters:
-            branches:
-              ignore: main
+      - lint-docker
+      - lint-helm
       - build-docker:
           filters:
             branches:
               only: main
           context: 
             - github
+          requires:
+            - lint-docker
       - build-helm:
           filters:
             branches:
               only: main
-      - upload:
+          requires:
+            - lint-helm
+      - deploy-docker:
           requires:
             - build-docker
-            - build-helm
           context: 
             - github
+          filters:
+            branches:
+              only: main
+      - deploy-helm:
+          requires:
+            - build-helm
+          context: 
             - bunny-storage-helm
           filters:
             branches:
