@@ -12,7 +12,7 @@ jobs:
       -
         run:
           command: |
-            sudo wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.10.0/hadolint-Linux-x86_64
+            sudo wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v<< pipeline.parameters.hadolint_version >>/hadolint-Linux-x86_64
             sudo chmod +x /usr/local/bin/hadolint
           name: Install Dependencies
       -
@@ -175,6 +175,9 @@ parameters:
   helm_version:
     type: string
     default: "3.9.0"
+  hadolint_version:
+    type: string
+    default: "2.10.0"
 workflows: 
   default: 
     jobs: 
