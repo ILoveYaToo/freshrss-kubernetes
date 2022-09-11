@@ -68,10 +68,10 @@ jobs:
             docker export ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision > image.tar
             echo "LATEST_VERSION=$LATEST_VERSION" > env
           name: "Build Docker Image"
-      - persist_to_workspace:
-          root: ~/app/docker
-          paths: 
-            - '*'
+      - save_cache:
+          key: docker
+          paths:
+            - ~/app/docker
     working_directory: ~/app
   build-helm: 
     machine: 
@@ -105,10 +105,11 @@ jobs:
             echo "CHART_VERSION=$CHART_VERSION" >> env
             echo "CHART_TGZ=$CHART_TGZ" >> env
           name: "Build Helm Chart"
-      - persist_to_workspace:
-          root: ~/helm_package
-          paths: 
-            - '*'
+      - save_cache:
+          key: helm
+          paths:
+            - ~/helm_package
+            - ~/app/helm
     working_directory: ~/app
   deploy-docker: 
     machine: 
@@ -116,12 +117,12 @@ jobs:
       image: "ubuntu-2004:current"
       resource_class: medium
     steps: 
-      - attach_workspace:
-          at: /tmp/workspace
+      - restore_cache:
+          key: docker
       -
         run:
           command: |
-            cd /tmp/workspace/docker
+            cd ~/app/docker
             source env
             docker import image.tar
             export GITHUB_API_TOKEN=$(curl -u ILoveYaToo:$GITHUB_TOKEN https://ghcr.io/token\?scope\="repository:<repository/path>:pull" | jq -r .token)
@@ -140,13 +141,12 @@ jobs:
       image: "ubuntu-2004:current"
       resource_class: medium
     steps: 
-      - attach_workspace:
-          at: /tmp/workspace
+      - restore_cache:
+          key: helm
       - 
         run:
           command: |
-            ls -la /tmp/workspace/
-            cd /tmp/workspace/helm_package
+            cd ~/helm_package
             source env
             if [[ $(curl -s --request GET --url https://storage.bunnycdn.com/iloveyatoo-helm/ --header 'Accept: */*' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY" | jq -r '.[] | select(.ObjectName==env.CHART_TGZ)') ]]
             then
