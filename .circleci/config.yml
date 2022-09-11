@@ -69,7 +69,7 @@ jobs:
             echo "LATEST_VERSION=$LATEST_VERSION" > env
           name: "Build Docker Image"
       - persist_to_workspace:
-          root: docker
+          root: ~/app/docker
           paths: 
             - '*'
     working_directory: ~/app
@@ -106,7 +106,7 @@ jobs:
             echo "CHART_TGZ=$CHART_TGZ" >> env
           name: "Build Helm Chart"
       - persist_to_workspace:
-          root: helm_package
+          root: ~/helm_package
           paths: 
             - '*'
     working_directory: ~/app
