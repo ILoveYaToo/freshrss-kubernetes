@@ -65,7 +65,7 @@ jobs:
             echo "LATEST_VERSION=$LATEST_VERSION" > ~/env
           name: "Build Docker Image"
       - save_cache:
-          key: docker
+          key: docker-{{ .BuildNum }}
           paths:
             - ~/app/docker
     working_directory: ~/app
@@ -102,7 +102,7 @@ jobs:
             echo "CHART_TGZ=$CHART_TGZ" >> env
           name: "Build Helm Chart"
       - save_cache:
-          key: helm
+          key: helm-{{ .BuildNum }}
           paths:
             - ~/helm_package
             - ~/app/helm
@@ -114,7 +114,7 @@ jobs:
       resource_class: medium
     steps: 
       - restore_cache:
-          key: docker
+          key: docker-{{ .BuildNum }}
       - 
         run: 
           command: "echo \"$GITHUB_TOKEN\" | docker login --username \"ILoveYaToo\" --password-stdin ghcr.io\n"
@@ -142,7 +142,7 @@ jobs:
       resource_class: medium
     steps: 
       - restore_cache:
-          key: helm
+          key: helm-{{ .BuildNum }}
       -
         run:
           command: |
