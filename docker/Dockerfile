@@ -19,14 +19,16 @@ RUN apk add --no-cache wget unzip \
     && chown -R app:app /app /nginx
 
 RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev \
-   # && docker-php-ext-configure opcache --build x86_64-pc-linux-musl --host aarch64-linux-musl \
-    && docker-php-ext-configure gmp --build x86_64-pc-linux-musl --host aarch64-linux-musl \
-    && docker-php-ext-configure intl --build x86_64-pc-linux-musl --host aarch64-linux-musl \
-    && docker-php-ext-configure zip --build x86_64-pc-linux-musl --host aarch64-linux-musl \
-    && docker-php-ext-configure pdo --build x86_64-pc-linux-musl --host aarch64-linux-musl \
-    && docker-php-ext-configure pdo_mysql --build x86_64-pc-linux-musl --host aarch64-linux-musl \
-    && docker-php-ext-configure pdo_pgsql --build x86_64-pc-linux-musl --host aarch64-linux-musl \
-    && docker-php-ext-install -j"$(nproc)" gmp intl zip pdo pdo_mysql pdo_pgsql \
+    && if [[ "$TARGETARCH" = "arm64" ]]; then \
+            docker-php-ext-configure opcache --build x86_64-pc-linux-musl --host aarch64-linux-musl \
+            docker-php-ext-configure gmp --build x86_64-pc-linux-musl --host aarch64-linux-musl \
+            docker-php-ext-configure intl --build x86_64-pc-linux-musl --host aarch64-linux-musl \
+            docker-php-ext-configure zip --build x86_64-pc-linux-musl --host aarch64-linux-musl \
+            docker-php-ext-configure pdo --build x86_64-pc-linux-musl --host aarch64-linux-musl \
+            docker-php-ext-configure pdo_mysql --build x86_64-pc-linux-musl --host aarch64-linux-musl \
+            docker-php-ext-configure pdo_pgsql --build x86_64-pc-linux-musl --host aarch64-linux-musl; \
+        fi \
+    && ARCH=$BUILDARCH docker-php-ext-install -j"$(nproc)" opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
 	&& docker-php-ext-enable opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
     && apk add --no-cache gmp icu libzip libpq
 
