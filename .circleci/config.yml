@@ -57,10 +57,6 @@ jobs:
           path: ~/app
       - 
         run: 
-          command: "echo \"$GITHUB_TOKEN\" | docker login --username \"ILoveYaToo\" --password-stdin ghcr.io\n"
-          name: "Login to Docker Repo"
-      - 
-        run: 
           command: |
             cd docker
             export LATEST_VERSION=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/FreshRSS/FreshRSS/releases | jq -r '.[] | select(.prerelease==false) | .tag_name' | sort -V | tail -n1 | cut -d "v" -f 2)
@@ -119,6 +115,10 @@ jobs:
     steps: 
       - restore_cache:
           key: docker
+      - 
+        run: 
+          command: "echo \"$GITHUB_TOKEN\" | docker login --username \"ILoveYaToo\" --password-stdin ghcr.io\n"
+          name: "Login to Docker Repo"
       -
         run:
           command: |
