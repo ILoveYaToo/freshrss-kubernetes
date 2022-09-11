@@ -65,7 +65,7 @@ jobs:
             cd docker
             export LATEST_VERSION=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/FreshRSS/FreshRSS/releases | jq -r '.[] | select(.prerelease==false) | .tag_name' | sort -V | tail -n1 | cut -d "v" -f 2)
             docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> --build-arg APP_VER=$LATEST_VERSION .
-            docker export ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> > image.tar
+            docker save -o image.tar ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >>
             echo "LATEST_VERSION=$LATEST_VERSION" > env
           name: "Build Docker Image"
       - save_cache:
@@ -124,7 +124,7 @@ jobs:
           command: |
             cd ~/app/docker
             source env
-            docker import image.tar
+            docker load -i image.tar
             export GITHUB_API_TOKEN=$(curl -u ILoveYaToo:$GITHUB_TOKEN https://ghcr.io/token\?scope\="repository:<repository/path>:pull" | jq -r .token)
             if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-<< pipeline.parameters.revision >>) == "404" ]
             then
