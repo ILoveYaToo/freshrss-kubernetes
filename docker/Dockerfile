@@ -3,7 +3,8 @@ FROM --platform=$BUILDPLATFORM php:8.1.8-fpm-alpine as build
 ARG APP_VER
 ARG HOST_ARCH
 
-RUN ulimit -n
+RUN apk add --no-cache bash
+SHELL ["/bin/bash", "-c"]
 
 RUN adduser -h /app -s /bin/bash -u 1000 -g 1000 -D app \
     && sed -i 's/^user \=.*/user = app/' /usr/local/etc/php-fpm.d/www.conf \
