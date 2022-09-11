@@ -19,6 +19,7 @@ RUN apk add --no-cache wget unzip \
     && chown -R app:app /app /nginx
 
 RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev \
+    && echo $TARGETARCH \
     && if [[ "$TARGETARCH" = "arm64" ]]; then \
             docker-php-ext-configure opcache --build x86_64-pc-linux-musl --host aarch64-linux-musl --help\
             docker-php-ext-configure gmp --build x86_64-pc-linux-musl --host aarch64-linux-musl \
