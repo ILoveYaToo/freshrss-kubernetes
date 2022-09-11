@@ -156,7 +156,6 @@ jobs:
           command: |
             cd ~/helm_package
             source ~/helm_package/env
-            echo $CHART_TGZ
             if [[ $(curl -s -o /dev/null -w "%{http_code}" https://storage.bunnycdn.com/iloveyatoo-helm/$CHART_TGZ --header 'Accept: */*' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY") = 200 ]]
             then
               echo "Helm package exists, upload is not required"
