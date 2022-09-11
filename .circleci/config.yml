@@ -62,7 +62,7 @@ jobs:
             export LATEST_VERSION=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/FreshRSS/FreshRSS/releases | jq -r '.[] | select(.prerelease==false) | .tag_name' | sort -V | tail -n1 | cut -d "v" -f 2)
             docker build -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> --build-arg APP_VER=$LATEST_VERSION .
             docker save -o image.tar ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >>
-            echo "LATEST_VERSION=$LATEST_VERSION" > ~/env
+            echo "LATEST_VERSION=$LATEST_VERSION" > env
           name: "Build Docker Image"
       - save_cache:
           key: docker-{{ .Revision }}
