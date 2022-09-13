@@ -19,7 +19,7 @@ jobs:
         run:
           command: |
             cd ~/app/docker
-            /usr/local/bin/hadolint --ignore DL3018 --ignore SC2086 --ignore SC3045 Dockerfile
+            /usr/local/bin/hadolint --ignore DL3018 --ignore SC2086 --ignore SC3045 --ignore SC2211 Dockerfile
           name: Lint Dockerfile
     working_directory: ~/app
   lint-helm: 
