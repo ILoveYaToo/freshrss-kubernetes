@@ -48,7 +48,7 @@ jobs:
     working_directory: ~/app
   build-docker: 
     machine: 
-      docker_layer_caching: true
+      docker_layer_caching: false
       image: "ubuntu-2004:current"
       resource_class: large
     steps: 
