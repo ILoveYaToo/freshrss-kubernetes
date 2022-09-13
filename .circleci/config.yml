@@ -63,15 +63,22 @@ jobs:
           name: Install Dependencies
       - 
         run: 
+          command: "echo \"$GITHUB_TOKEN\" | docker login --username \"ILoveYaToo\" --password-stdin ghcr.io\n"
+          name: "Login to Docker Repo"
+      - 
+        run: 
           command: |
             export BUILDKIT_PROGRESS=plain
             cd docker
-            docker builder prune --force --all
             export LATEST_VERSION=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/FreshRSS/FreshRSS/releases | jq -r '.[] | select(.prerelease==false) | .tag_name' | sort -V | tail -n1 | cut -d "v" -f 2)
-            docker buildx create --use
-            docker buildx build --no-cache -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> --build-arg APP_VER=$LATEST_VERSION --platform linux/arm64 .
-            docker save -o image.tar ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >>
-            echo "LATEST_VERSION=$LATEST_VERSION" > env
+            export GITHUB_API_TOKEN=$(curl -u ILoveYaToo:$GITHUB_TOKEN https://ghcr.io/token\?scope\="repository:<repository/path>:pull" | jq -r .token)
+            if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-<< pipeline.parameters.revision >>) == "404" ]
+            then
+              docker buildx create --use
+              docker buildx build --no-cache --push -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> --build-arg APP_VER=$LATEST_VERSION --platform linux/arm64 .
+            else
+              echo "Docker Image exists, upload is not required"
+            fi
           name: "Build Docker Image"
       - save_cache:
           key: docker-{{ .Revision }}
@@ -106,65 +113,6 @@ jobs:
             mkdir ~/helm_package
             cd ~/helm_package
             helm package ~/app/helm/
-            echo "CHART_NAME=$CHART_NAME" > env
-            echo "CHART_VERSION=$CHART_VERSION" >> env
-            echo "CHART_TGZ=$CHART_TGZ" >> env
-          name: "Build Helm Chart"
-      - save_cache:
-          key: helm-{{ .Revision }}
-          paths:
-            - ~/helm_package
-            - ~/app/helm
-    working_directory: ~/app
-  deploy-docker: 
-    machine: 
-      docker_layer_caching: true
-      image: "ubuntu-2004:current"
-      resource_class: medium
-    steps: 
-      - restore_cache:
-          key: docker-{{ .Revision }}
-      - 
-        run: 
-          command: "echo \"$GITHUB_TOKEN\" | docker login --username \"ILoveYaToo\" --password-stdin ghcr.io\n"
-          name: "Login to Docker Repo"
-      -
-        run:
-          command: |
-            cd ~/app/docker
-            source ~/app/docker/env
-            docker load -i image.tar
-            export GITHUB_API_TOKEN=$(curl -u ILoveYaToo:$GITHUB_TOKEN https://ghcr.io/token\?scope\="repository:<repository/path>:pull" | jq -r .token)
-            if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-<< pipeline.parameters.revision >>) == "404" ]
-            then
-              docker push ghcr.io/iloveyatoo/freshrss:latest
-              docker push ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >>
-            else
-              echo "Docker Image exists, upload is not required"
-            fi
-          name: "Upload Docker Image"
-    working_directory: ~/app
-  deploy-helm: 
-    machine: 
-      docker_layer_caching: true
-      image: "ubuntu-2004:current"
-      resource_class: medium
-    steps: 
-      - restore_cache:
-          key: helm-{{ .Revision }}
-      -
-        run:
-          command: |
-            wget https://get.helm.sh/helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz
-            tar xvf helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz
-            sudo mv linux-amd64/helm /usr/local/bin
-            rm -r helm-v<< pipeline.parameters.helm_version >>-linux-amd64.tar.gz linux-amd64
-          name: Install Dependencies
-      - 
-        run:
-          command: |
-            cd ~/helm_package
-            source ~/helm_package/env
             if [[ $(curl -s -o /dev/null -w "%{http_code}" https://storage.bunnycdn.com/iloveyatoo-helm/$CHART_TGZ --header 'Accept: */*' --header "AccessKey: $BUNNY_STORAGE_HELM_KEY") = 200 ]]
             then
               echo "Helm package exists, upload is not required"
@@ -198,6 +146,7 @@ workflows:
               only: main
           context: 
             - github
+            - bunny-storage-helm
           requires:
             - lint-docker
       - build-helm:
@@ -206,19 +155,5 @@ workflows:
               only: main
           requires:
             - lint-helm
-      - deploy-docker:
-          requires:
-            - build-docker
-          context: 
-            - github
-          filters:
-            branches:
-              only: main
-      - deploy-helm:
-          requires:
-            - build-helm
           context: 
             - bunny-storage-helm
-          filters:
-            branches:
-              only: main
