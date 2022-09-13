@@ -75,7 +75,7 @@ jobs:
             if [ $(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_API_TOKEN" https://ghcr.io/v2/iloveyatoo/freshrss/manifests/$LATEST_VERSION-<< pipeline.parameters.revision >>) == "404" ]
             then
               docker buildx create --use
-              docker buildx build --no-cache --push -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> --build-arg APP_VER=$LATEST_VERSION --platform linux/arm64,linux/amd64 .
+              docker buildx build --no-cache --push -t ghcr.io/iloveyatoo/freshrss:latest -t ghcr.io/iloveyatoo/freshrss:$LATEST_VERSION-<< pipeline.parameters.revision >> --build-arg APP_VER=$LATEST_VERSION --platform linux/arm64,linux/amd64,linux/386 .
             else
               echo "Docker Image exists, upload is not required"
             fi
