@@ -32,6 +32,8 @@ ARG APP_VER
 ARG TARGETARCH
 RUN apk add --no-cache bash
 SHELL ["/bin/bash", "-c"]
+COPY --from=build-pecl /usr/local/lib/php/extensions/no-debug-non-zts-20210902/apcu.so /usr/local/lib/php/extensions/no-debug-non-zts-20210902/apcu.so
+COPY --from=build-extensions /usr/local/include/php/ext /tmp/php-ext
 RUN adduser -h /app -s /bin/bash -u 1000 -g 1000 -D app \
     && sed -i 's/^user \=.*/user = app/' /usr/local/etc/php-fpm.d/www.conf \
     && sed -i 's/^group \=.*/group = app/' /usr/local/etc/php-fpm.d/www.conf 
