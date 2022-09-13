@@ -36,8 +36,8 @@ COPY --from=build-pecl /usr/local/lib/php/extensions/no-debug-non-zts-20210902/ 
 COPY --from=build-pecl /usr/local/include/php/ext/ /tmp/pecl_include_extensions
 COPY --from=build-extensions /usr/local/lib/php/extensions/no-debug-non-zts-20210902/ /tmp/php_zts_extensions
 COPY --from=build-extensions /usr/local/include/php/ext/ /tmp/php_include_extensions
-RUN mv /tmp/pecl_zts_extensions/* /tmp/php_zts_extensions/* /usr/local/lib/php/extensions/no-debug-non-zts-20210902/ \
-    && mv /tmp/pecl_include_extensions/* /tmp/php_include_extensions/* /usr/local/include/php/ext \
+RUN cp -R /tmp/pecl_zts_extensions/* /tmp/php_zts_extensions/* /usr/local/lib/php/extensions/no-debug-non-zts-20210902/ \
+    && cp -R /tmp/pecl_include_extensions/* /tmp/php_include_extensions/* /usr/local/include/php/ext \
     && ls -la /usr/local/include/php/ext \
     && la -la /usr/local/lib/php/extensions/no-debug-non-zts-20210902/
 RUN adduser -h /app -s /bin/bash -u 1000 -g 1000 -D app \
