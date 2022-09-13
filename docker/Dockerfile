@@ -14,18 +14,18 @@ RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev \
         fi \
     && docker-php-ext-install -j"$(nproc)" opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
 	&& docker-php-ext-enable opcache gmp intl zip pdo pdo_mysql pdo_pgsql \
-    && apk add --no-cache gmp icu libzip libpq
-RUN ls -la /usr/local/lib/php/extensions/no-debug-non-zts-20210902/
-RUN ls -la /usr/local/include/php/ext
+    && apk add --no-cache gmp icu libzip libpq \
+    && ls -la /usr/local/lib/php/extensions/no-debug-non-zts-20210902 \
+    && ls -la /usr/local/include/php/ext
 
 FROM php:8.1.8-fpm-alpine as build-pecl
 RUN apk add --update --no-cache --virtual .build-dependencies $PHPIZE_DEPS \ 
     && pecl install apcu \
     && docker-php-ext-enable apcu \
     && pecl clear-cache \
-    && apk del .build-dependencies
-RUN ls -la /usr/local/lib/php/extensions/no-debug-non-zts-20210902/
-RUN ls -la /usr/local/include/php/ext
+    && apk del .build-dependencies \
+    && ls -la /usr/local/lib/php/extensions/no-debug-non-zts-20210902/ \
+    && ls -la /usr/local/include/php/ext
 
 FROM php:8.1.8-fpm-alpine
 ARG APP_VER
