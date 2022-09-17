@@ -42,9 +42,6 @@ COPY --from=build-extensions /usr/local/lib/php/extensions/no-debug-non-zts-2021
 COPY --from=build-extensions /usr/local/include/php/ext/ /tmp/php_include_extensions
 RUN cp -R /tmp/pecl_zts_extensions/* /tmp/php_zts_extensions/* /usr/local/lib/php/extensions/no-debug-non-zts-20210902/ \
     && cp -R /tmp/pecl_include_extensions/* /tmp/php_include_extensions/* /usr/local/include/php/ext
-RUN adduser -h /app -s /bin/bash -u 1000 -g 1000 -D app \
-    && sed -i 's/^user \=.*/user = app/' /usr/local/etc/php-fpm.d/www.conf \
-    && sed -i 's/^group \=.*/group = app/' /usr/local/etc/php-fpm.d/www.conf 
 RUN apk add --no-cache wget unzip gmp icu libzip libpq \
     && wget --progress=dot:giga https://github.com/FreshRSS/FreshRSS/archive/refs/tags/${APP_VER}.zip \
     && unzip -oq ${APP_VER}.zip \
@@ -52,6 +49,9 @@ RUN apk add --no-cache wget unzip gmp icu libzip libpq \
     && apk del wget unzip \
     && mkdir -p /app/data /nginx \
     && chown -R app:app /app /nginx
+RUN adduser -h /app -s /bin/bash -u 1000 -g 1000 -D app \
+    && sed -i 's/^user \=.*/user = app/' /usr/local/etc/php-fpm.d/www.conf \
+    && sed -i 's/^group \=.*/group = app/' /usr/local/etc/php-fpm.d/www.conf 
 WORKDIR /app
 USER app
 EXPOSE 9000
