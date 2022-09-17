@@ -47,7 +47,7 @@ COPY --from=build-extensions /usr/local/include/php/ext/ /tmp/php_include_extens
 COPY --from=build-extensions /usr/local/etc/php/conf.d/ /tmp/php_conf
 RUN cp -R /tmp/pecl_zts_extensions/* /tmp/php_zts_extensions/* /usr/local/lib/php/extensions/no-debug-non-zts-20210902/ \
     && cp -R /tmp/pecl_include_extensions/* /tmp/php_include_extensions/* /usr/local/include/php/ext \
-    && cp -R /tmp/pecl_conf/* /tmp/php_conf/* /usr/local/etc/php/conf.d
+    && cp -R /tmp/pecl_conf/* /tmp/php_conf/* /usr/local/etc/php/conf.d \
     && ls -la /usr/local/etc/php/conf.d
 RUN apk add --no-cache wget unzip gmp icu libzip libpq \
     && wget --progress=dot:giga https://github.com/FreshRSS/FreshRSS/archive/refs/tags/${APP_VER}.zip \
