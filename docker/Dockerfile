@@ -11,7 +11,7 @@ RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev \
             docker-php-ext-configure pdo_mysql --build x86_64-pc-linux-musl --host aarch64-linux-musl; \
             docker-php-ext-configure pdo_pgsql --build x86_64-pc-linux-musl --host aarch64-linux-musl; \
 	    docker-php-ext-install -j"$(nproc)" gmp intl zip pdo pdo_mysql pdo_pgsql; \
-	    docker-php-ext-enable gmp intl zip pdo pdo_mysql pdo_pgsql
+	    docker-php-ext-enable gmp intl zip pdo pdo_mysql pdo_pgsql;
         elif [[ "$TARGETARCH" = "386" ]]; then \
             docker-php-ext-configure gmp --build x86_64-pc-linux-musl --host i386-pc-linux-musl; \
             docker-php-ext-configure intl --build x86_64-pc-linux-musl --host i386-pc-linux-musl; \
@@ -20,7 +20,7 @@ RUN apk add --no-cache gmp gmp-dev icu icu-dev libzip-dev libzip libpq-dev \
             docker-php-ext-configure pdo_mysql --build x86_64-pc-linux-musl --host i386-pc-linux-musl; \
             docker-php-ext-configure pdo_pgsql --build x86_64-pc-linux-musl --host i386-pc-linux-musl; \
 	    docker-php-ext-install -j"$(nproc)" gmp intl zip pdo pdo_mysql pdo_pgsql; \
-	    docker-php-ext-enable gmp intl zip pdo pdo_mysql pdo_pgsql
+	    docker-php-ext-enable gmp intl zip pdo pdo_mysql pdo_pgsql;
 	elif [[ "$TARGETARCH" = "amd64" ]]; then \
 	    docker-php-ext-install -j"$(nproc)" opcache gmp intl zip pdo pdo_mysql pdo_pgsql; \
 	    docker-php-ext-enable opcache gmp intl zip pdo pdo_mysql pdo_pgsql;
