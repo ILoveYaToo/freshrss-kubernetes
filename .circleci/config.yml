@@ -128,7 +128,7 @@ version: 2.1
 parameters:
   revision:
     type: integer
-    default: 6
+    default: 7
   helm_version:
     type: string
     default: "3.9.0"
