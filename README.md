@@ -19,7 +19,7 @@ helm install freshrss iloveyatoo/freshrss -f values.yaml
 ```
 
 ## Chart Values
-| Parameter |   |   |
+| Parameter | Default | Description |
 |-----------|---|---|
 |   |   |   |
 |   |   |   |
