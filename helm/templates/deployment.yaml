@@ -6,28 +6,28 @@ metadata:
   labels:
     {{- include "freshrss.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
+  {{- if not .Values.freshrss.autoscaling.enabled }}
+  replicas: {{ .Values.freshrss.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
       {{- include "freshrss.selectorLabels-fpm" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
+      {{- with .Values.freshrss.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
         {{- include "freshrss.selectorLabels-fpm" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with .Values.freshrss.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "freshrss.fullname" . }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.freshrss.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -79,15 +79,15 @@ spec:
         emptyDir:
           medium: Memory
           sizeLimit: {{ .Values.freshrss.tmpStorage }}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.freshrss.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.freshrss.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.freshrss.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -99,7 +99,7 @@ metadata:
   labels:
     {{- include "freshrss.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
+  {{- if not .Values.nginx.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
@@ -107,20 +107,20 @@ spec:
       {{- include "freshrss.selectorLabels-nginx" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
+      {{- with .Values.freshrss.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
         {{- include "freshrss.selectorLabels-nginx" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with .Values.nginx.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "freshrss.fullname" . }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.nginx.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}-nginx
           securityContext:
@@ -167,15 +167,15 @@ spec:
         emptyDir:
           medium: Memory
           sizeLimit: {{ .Values.nginx.tmpStorage }}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.nginx.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.nginx.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.nginx.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
