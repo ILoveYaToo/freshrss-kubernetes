@@ -23,6 +23,14 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 
+{{- define "freshrss.app-name" -}}
+{{- printf "%s-%s" .Release.Name "app" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "freshrss.nginx-name" -}}
+{{- printf "%s-%s" .Release.Name "nginx" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
 {{/*
 Create chart name and version as used by the chart label.
 */}}
@@ -46,7 +54,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "freshrss.selectorLabels-fpm" -}}
+{{- define "freshrss.selectorLabels-app" -}}
 app.kubernetes.io/name: {{ include "freshrss.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: fpm

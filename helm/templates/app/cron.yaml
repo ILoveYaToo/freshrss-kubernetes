@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "freshrss.fullname" . }}-cron
+  name: {{ include "freshrss.app-name" . }}-cron
   labels:
     {{- include "freshrss.labels" . | nindent 4 }}
 spec:
@@ -21,31 +21,31 @@ spec:
               imagePullPolicy: {{ .Values.freshrss.image.pullPolicy }}
               command: ['/bin/sh', '-c', 'php -f /app/app/actualize_script.php']
               volumeMounts:
-                - name: {{ include "freshrss.fullname" . }}-app-data
+                - name: {{ include "freshrss.app-name" . }}-data
                   mountPath: /app/data
-                - name: {{ include "freshrss.fullname" . }}-app-extensions
+                - name: {{ include "freshrss.app-name" . }}-extensions
                   mountPath: /app/extensions
-                - name: {{ include "freshrss.fullname" . }}-php-timezone
+                - name: {{ include "freshrss.app-name" . }}-timezone
                   mountPath: /usr/local/etc/php/conf.d/timezone.ini
                   subPath: timezone.ini
                   readOnly: true
-                - name: {{ include "freshrss.fullname" . }}-tmp
+                - name: {{ include "freshrss.app-name" . }}-tmp
                   mountPath: /tmp
           volumes:
-            - name: {{ include "freshrss.fullname" . }}-app-data
+            - name: {{ include "freshrss.app-name" . }}-data
               persistentVolumeClaim:
-                claimName: {{ include "freshrss.fullname" . }}-app-data
-            - name: {{ include "freshrss.fullname" . }}-app-extensions
+                claimName: {{ include "freshrss.app-name" . }}-data
+            - name: {{ include "freshrss.app-name" . }}-extensions
               persistentVolumeClaim:
-                claimName: {{ include "freshrss.fullname" . }}-app-extensions
-            - name: {{ include "freshrss.fullname" . }}-php-timezone
+                claimName: {{ include "freshrss.app-name" . }}-extensions
+            - name: {{ include "freshrss.app-name" . }}-timezone
               configMap:
-                name: {{ include "freshrss.fullname" . }}-php-timezone
+                name: {{ include "freshrss.app-name" . }}-timezone
                 defaultMode: 0644
                 items:
                   - key: timezone.ini
                     path: timezone.ini
-            - name: {{ include "freshrss.fullname" . }}-tmp
+            - name: {{ include "freshrss.app-name" . }}-tmp
               emptyDir:
                 medium: Memory
                 sizeLimit: {{ .Values.freshrss.tmpStorage }}

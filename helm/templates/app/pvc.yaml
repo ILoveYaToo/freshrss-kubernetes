@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "freshrss.fullname" . }}-app-data
+  name: {{ include "freshrss.app-name" . }}-data
   labels:
     {{- include "freshrss.labels" . | nindent 4 }}
 spec:
@@ -16,7 +16,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "freshrss.fullname" . }}-app-extensions
+  name: {{ include "freshrss.app-name" . }}-extensions
   labels:
     {{- include "freshrss.labels" . | nindent 4 }}
 spec:
@@ -26,17 +26,3 @@ spec:
   resources:
     requests:
       storage: {{ .Values.freshrss.storage.extensions.size }}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ include "freshrss.fullname" . }}-nginx-data
-  labels:
-    {{- include "freshrss.labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: {{ .Values.nginx.storage.nginx.storageClassName }}
-  resources:
-    requests:
-      storage: {{ .Values.nginx.storage.nginx.size }}
