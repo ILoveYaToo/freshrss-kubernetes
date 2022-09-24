@@ -19,7 +19,7 @@ data:
         --title {{ .Values.freshrss.setting.title }} \
         --base_url {{ .Values.freshrss.setting.base_url }} \
         --db-type sqlite \
-        gi--disable_update{{ if .Values.freshrss.setting.allow_robots }} --allow_robots{{ end }}{{ if .Values.freshrss.setting.allow_anonymous }} --allow_anonymous{{ end }}{{- if .Values.freshrss.setting.allow_anonymous_refresh }} --allow_anonymous_refresh{{ end }}{{ if .Values.freshrss.setting.api_enabled }} --api_enabled{{ end }}
+        --disable_update{{ if .Values.freshrss.setting.allow_robots }} --allow_robots{{ end }}{{ if .Values.freshrss.setting.allow_anonymous }} --allow_anonymous{{ end }}{{- if .Values.freshrss.setting.allow_anonymous_refresh }} --allow_anonymous_refresh{{ end }}{{ if .Values.freshrss.setting.api_enabled }} --api_enabled{{ end }}
       {{ else if eq .Values.freshrss.setting.database.type "postgres" }}
       ./cli/do-install.php \
         --default_user "$FRESHRSS_USERNAME" \
