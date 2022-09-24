@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "freshrss.nginx-name" . }}-data
+  name: {{ include "freshrss.webserver-name" . }}-data
   labels:
     {{- include "freshrss.labels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: {{ .Values.nginx.storage.nginx.storageClassName }}
+  storageClassName: {{ .Values.webserver.storage.webserver.storageClassName }}
   resources:
     requests:
-      storage: {{ .Values.nginx.storage.nginx.size }}
+      storage: {{ .Values.webserver.storage.webserver.size }}

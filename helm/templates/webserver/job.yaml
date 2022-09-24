@@ -2,27 +2,27 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "freshrss.nginx-name" . }}-init
+  name: {{ include "freshrss.webserver-name" . }}-init
   annotations:
     argocd.argoproj.io/hook: Sync
 spec:
   template:
     spec:
       containers:
-        - name: {{ include "freshrss.nginx-name" . }}-init
+        - name: {{ include "freshrss.webserver-name" . }}-init
           securityContext:
             {{- toYaml .Values.freshrss.securityContext | nindent 12 }}
           image: "{{ .Values.freshrss.image.repository }}:{{ .Values.freshrss.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.freshrss.image.pullPolicy }}
           command: ['/bin/sh', '-c', 'rm -rf /target/{*,.*} && cp -R /app/p/. /target/p/']
           resources:
-            {{- toYaml .Values.nginx.resources.init | nindent 12 }}
+            {{- toYaml .Values.webserver.resources.init | nindent 12 }}
           volumeMounts:
-            - name: {{ include "freshrss.nginx-name" . }}-data
+            - name: {{ include "freshrss.webserver-name" . }}-data
               mountPath: /target
       volumes:
-      - name: {{ include "freshrss.nginx-name" . }}-data
+      - name: {{ include "freshrss.webserver-name" . }}-data
         persistentVolumeClaim:
-          claimName: {{ include "freshrss.nginx-name" . }}-data
+          claimName: {{ include "freshrss.webserver-name" . }}-data
       restartPolicy: Never
   backoffLimit: 4

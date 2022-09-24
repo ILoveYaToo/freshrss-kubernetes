@@ -27,8 +27,8 @@ If release name contains chart name it will be used as a full name.
 {{- printf "%s-%s" .Release.Name "app" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "freshrss.nginx-name" -}}
-{{- printf "%s-%s" .Release.Name "nginx" | trunc 63 | trimSuffix "-" }}
+{{- define "freshrss.webserver-name" -}}
+{{- printf "%s-%s" .Release.Name "webserver" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
@@ -57,10 +57,10 @@ Selector labels
 {{- define "freshrss.selectorLabels-app" -}}
 app.kubernetes.io/name: {{ include "freshrss.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: fpm
+app.kubernetes.io/component: app
 {{- end }}
-{{- define "freshrss.selectorLabels-nginx" -}}
+{{- define "freshrss.selectorLabels-webserver" -}}
 app.kubernetes.io/name: {{ include "freshrss.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: nginx
+app.kubernetes.io/component: webserver
 {{- end }}
