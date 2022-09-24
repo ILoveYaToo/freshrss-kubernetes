@@ -23,11 +23,11 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 
-{{- define "freshrss.app-name" -}}
+{{- define "freshrss.name-app" -}}
 {{- printf "%s-%s" .Release.Name "app" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "freshrss.webserver-name" -}}
+{{- define "freshrss.name-webserver" -}}
 {{- printf "%s-%s" .Release.Name "webserver" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -41,10 +41,21 @@ Create chart name and version as used by the chart label.
 {{/*
 Common labels
 */}}
-{{- define "freshrss.labels" -}}
+{{- define "freshrss.labels-app" -}}
 helm.sh/chart: {{ include "freshrss.chart" . }}
 app.kubernetes.io/name: {{ include "freshrss.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: app
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+{{- define "freshrss.labels-webserver" -}}
+helm.sh/chart: {{ include "freshrss.chart" . }}
+app.kubernetes.io/name: {{ include "freshrss.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: webserver
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -55,12 +66,22 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels
 */}}
 {{- define "freshrss.selectorLabels-app" -}}
+helm.sh/chart: {{ include "freshrss.chart" . }}
 app.kubernetes.io/name: {{ include "freshrss.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: app
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 {{- define "freshrss.selectorLabels-webserver" -}}
+helm.sh/chart: {{ include "freshrss.chart" . }}
 app.kubernetes.io/name: {{ include "freshrss.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: webserver
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}

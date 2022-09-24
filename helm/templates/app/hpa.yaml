@@ -3,14 +3,14 @@
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "freshrss.app-name" . }}-fpm
+  name: {{ include "freshrss.name-app" . }}-fpm
   labels:
-    {{- include "freshrss.labels" . | nindent 4 }}
+    {{- include "freshrss.labels-app" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "freshrss.app-name" . }}-fpm
+    name: {{ include "freshrss.name-app" . }}-fpm
   minReplicas: {{ .Values.freshrss.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.freshrss.autoscaling.maxReplicas }}
   metrics:

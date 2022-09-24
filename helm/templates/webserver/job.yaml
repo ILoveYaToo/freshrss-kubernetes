@@ -2,14 +2,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "freshrss.webserver-name" . }}-init
+  name: {{ include "freshrss.name-webserver" . }}-init
   annotations:
     argocd.argoproj.io/hook: Sync
+  labels:
+    {{- include "freshrss.labels-webserver" . | nindent 4 }}
 spec:
   template:
     spec:
       containers:
-        - name: {{ include "freshrss.webserver-name" . }}-init
+        - name: {{ include "freshrss.name-webserver" . }}-init
           securityContext:
             {{- toYaml .Values.freshrss.securityContext | nindent 12 }}
           image: "{{ .Values.freshrss.image.repository }}:{{ .Values.freshrss.image.tag | default .Chart.AppVersion }}"
@@ -18,11 +20,11 @@ spec:
           resources:
             {{- toYaml .Values.webserver.resources.init | nindent 12 }}
           volumeMounts:
-            - name: {{ include "freshrss.webserver-name" . }}-data
+            - name: {{ include "freshrss.name-webserver" . }}-data
               mountPath: /target
       volumes:
-      - name: {{ include "freshrss.webserver-name" . }}-data
+      - name: {{ include "freshrss.name-webserver" . }}-data
         persistentVolumeClaim:
-          claimName: {{ include "freshrss.webserver-name" . }}-data
+          claimName: {{ include "freshrss.name-webserver" . }}-data
       restartPolicy: Never
   backoffLimit: 4

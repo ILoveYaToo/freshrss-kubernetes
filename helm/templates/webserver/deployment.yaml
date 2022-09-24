@@ -2,9 +2,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "freshrss.webserver-name" . }}
+  name: {{ include "freshrss.name-webserver" . }}
   labels:
-    {{- include "freshrss.labels" . | nindent 4 }}
+    {{- include "freshrss.labels-webserver" . | nindent 4 }}
 spec:
   {{- if not .Values.webserver.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -25,7 +25,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "freshrss.webserver-name" . }}
+      serviceAccountName: {{ include "freshrss.name-webserver" . }}
       securityContext:
         {{- toYaml .Values.webserver.podSecurityContext | nindent 8 }}
       containers:
@@ -51,26 +51,26 @@ spec:
           resources:
             {{- toYaml .Values.webserver.resources.app | nindent 12 }}
           volumeMounts:
-            - name: {{ include "freshrss.webserver-name" . }}-conf
+            - name: {{ include "freshrss.name-webserver" . }}-conf
               mountPath: /etc/nginx/conf.d/default.conf
               subPath: nginx.conf
               readOnly: true
-            - name: {{ include "freshrss.webserver-name" . }}-data
+            - name: {{ include "freshrss.name-webserver" . }}-data
               mountPath: /app
               readOnly: true
-            - name: {{ include "freshrss.webserver-name" . }}-tmp
+            - name: {{ include "freshrss.name-webserver" . }}-tmp
               mountPath: /tmp
       volumes:
-      - name: {{ include "freshrss.webserver-name" . }}-conf
+      - name: {{ include "freshrss.name-webserver" . }}-conf
         configMap:
-          name: {{ include "freshrss.webserver-name" . }}-conf
+          name: {{ include "freshrss.name-webserver" . }}-conf
           items:
             - key: nginx.conf
               path: nginx.conf
-      - name: {{ include "freshrss.webserver-name" . }}-data
+      - name: {{ include "freshrss.name-webserver" . }}-data
         persistentVolumeClaim:
-          claimName: {{ include "freshrss.webserver-name" . }}-data
-      - name: {{ include "freshrss.webserver-name" . }}-tmp
+          claimName: {{ include "freshrss.name-webserver" . }}-data
+      - name: {{ include "freshrss.name-webserver" . }}-tmp
         emptyDir:
           medium: Memory
           sizeLimit: {{ .Values.webserver.tmpStorage }}

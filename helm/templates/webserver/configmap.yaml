@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "freshrss.webserver-name" . }}-conf
+  name: {{ include "freshrss.name-webserver" . }}-conf
   labels:
-    {{- include "freshrss.labels" . | nindent 4 }}
+    {{- include "freshrss.labels-webserver" . | nindent 4 }}
 data:
   nginx.conf: |
     server {
@@ -13,7 +13,7 @@ data:
       root /app/p/;
       index index.php index.html index.htm;
       location ~ ^.+?\.php(/.*)?$ {
-        fastcgi_pass {{ include "freshrss.app-name" . }}:9000;
+        fastcgi_pass {{ include "freshrss.name-app" . }}:9000;
         fastcgi_split_path_info ^(.+\.php)(/.*)$;
         # By default, the variable PATH_INFO is not set under PHP-FPM
         # But FreshRSS API greader.php need it. If you have a “Bad Request” error, double check this var!
